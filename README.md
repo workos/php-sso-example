@@ -1,4 +1,4 @@
-# python-sso-example
+# php-sso-example
 An example PHP app demonstrating SSO with the [WorkOS PHP SDK](https://github.com/workos-inc/workos-php).
 
 ## Dependencies
