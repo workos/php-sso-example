@@ -33,6 +33,18 @@ switch (strtok($_SERVER["REQUEST_URI"], "?")) {
         }
         return httpNotFound();
 
+    case ("/auth"):
+        $authorizationUrl = (new \WorkOS\SSO())
+            ->getAuthorizationUrl(
+                CUSTOMER_EMAIL_DOMAIN,
+                'http://localhost:8000/auth/callback',
+                ["things" => "gonna_my_things_back"],
+                null
+            );
+            
+        header('Location: ' . $authorizationUrl, true, 302);
+        return true;
+
     case ("/auth/callback"):
         $profile = (new \WorkOS\SSO())->getProfile($_GET["code"]);
 
@@ -42,16 +54,7 @@ switch (strtok($_SERVER["REQUEST_URI"], "?")) {
 
     case ("/"):
     case ("/login"):
-        echo $twig->render("login.html.twig", [
-            "authUrl" => (new \WorkOS\SSO())
-                ->getAuthorizationUrl(
-                    CUSTOMER_EMAIL_DOMAIN,
-                    'http://localhost:8000/auth/callback',
-                    ["things" => "gonna_my_things_back"],
-                    null
-                )
-            ]
-        );
+        echo $twig->render("login.html.twig");
         return true;
 
     default:
