@@ -9,18 +9,15 @@ use Twig\Loader\FilesystemLoader;
 $loader = new FilesystemLoader(__DIR__ . '/templates');
 $twig = new Environment($loader);
 
-// Configure WorkOS with API Key and Project ID from env
-\WorkOS\WorkOS::setApiKey(getenv("WORKOS_API_KEY"));
-\WorkOS\WorkOS::setProjectId(getenv("WORKOS_PROJECT_ID"));
+// Configure WorkOS with API Key and Client ID 
+\WorkOS\WorkOS::setApiKey("WORKOS_API_KEY");
+\WorkOS\WorkOS::setClientId("WORKOS_CLIENT_ID");
 
 // Convenient function for throwing a 404
 function httpNotFound() {
     header($_SERVER["SERVER_PROTOCOL"] . " 404");
     return true;
 }
-
-// In practice, domain comes from a customer in some way shape or form
-const CUSTOMER_EMAIL_DOMAIN = "foo-corp.com";
 
 // Routing
 switch (strtok($_SERVER["REQUEST_URI"], "?")) {
@@ -32,26 +29,36 @@ switch (strtok($_SERVER["REQUEST_URI"], "?")) {
             return true;
         }
         return httpNotFound();
+// /auth page is what will run the getAuthorizationUrl function
+
+
+/* There are 5 parameters for the GetAuthorizationURL Function
+Domain, Redirect URI, State, Provider, and Connection
+These can be read about here: https://workos.com/docs/reference/sso/authorize/get
+We recommend using Connection (pass a connectionID) as opposed to Domain so in this example
+I am passing domain as an empty string */
 
     case ("/auth"):
         $authorizationUrl = (new \WorkOS\SSO())
             ->getAuthorizationUrl(
-                CUSTOMER_EMAIL_DOMAIN,
-                'http://localhost:8000/auth/callback',
-                ["things" => "gonna_my_things_back"],
-                null
+                "", //domain as empty string
+                'http://localhost:8000/auth/callback', //redirectURI
+                [], //state array, also empty
+                null, //Provider which can remain null unless being used
+                "conn_01F3NBCWG7739Y578R4DCA2B6Q" //connection which is the WorkOS Connection ID
             );
             
         header('Location: ' . $authorizationUrl, true, 302);
         return true;
-
+// /auth/callback page is what will run the getProfileAndToken function and return it
     case ("/auth/callback"):
-        $profile = (new \WorkOS\SSO())->getProfile($_GET["code"]);
+        $profile = (new \WorkOS\SSO())->getProfileAndToken($_GET["code"]);
 
         header("Content-Type: application/json");
-        echo json_encode($profile->toArray());
+        echo json_encode($profile);
         return true;
-
+ 
+        // home and /login will display the login page       
     case ("/"):
     case ("/login"):
         echo $twig->render("login.html.twig");
