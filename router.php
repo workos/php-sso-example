@@ -5,13 +5,19 @@ require __DIR__ . "/vendor/autoload.php";
 use Twig\Environment;
 use Twig\Loader\FilesystemLoader;
 
+//Set API Key, ClientID, Connection, and/or domain
+$WORKOS_API_KEY = "";
+$WORKOS_CLIENT_ID = "";
+$WORKOS_CONNECTION_ID = "";
+$CUSTOMER_DOMAIN = "";
+
 // Setup html templating library
 $loader = new FilesystemLoader(__DIR__ . '/templates');
 $twig = new Environment($loader);
 
 // Configure WorkOS with API Key and Client ID 
-\WorkOS\WorkOS::setApiKey("WORKOS_API_KEY");
-\WorkOS\WorkOS::setClientId("WORKOS_CLIENT_ID");
+\WorkOS\WorkOS::setApiKey($WORKOS_API_KEY);
+\WorkOS\WorkOS::setClientId($WORKOS_CLIENT_ID);
 
 // Convenient function for throwing a 404
 function httpNotFound() {
@@ -41,11 +47,11 @@ I am passing domain as an empty string */
     case ("/auth"):
         $authorizationUrl = (new \WorkOS\SSO())
             ->getAuthorizationUrl(
-                "", //domain as empty string
+                $CUSTOMER_DOMAIN, //domain as empty string
                 'http://localhost:8000/auth/callback', //redirectURI
                 [], //state array, also empty
                 null, //Provider which can remain null unless being used
-                "conn_01F3NBCWG7739Y578R4DCA2B6Q" //connection which is the WorkOS Connection ID
+                $WORKOS_CONNECTION_ID //connection which is the WorkOS Connection ID
             );
             
         header('Location: ' . $authorizationUrl, true, 302);
